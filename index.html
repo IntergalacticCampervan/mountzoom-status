@@ -15,9 +15,9 @@
     }
 
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to bottom, #1a1a1a, #2d2d2d);
+      background: #000;
       color: #f1f1f1;
+      font-family: 'Segoe UI', sans-serif;
       text-align: center;
       padding: 4rem 1rem;
     }
@@ -27,7 +27,7 @@
       font-size: 2.8rem;
       margin-bottom: 1rem;
       color: #ffe400;
-      text-shadow: 2px 2px 4px #000;
+      text-shadow: 2px 2px 6px #333;
     }
 
     p {
@@ -36,10 +36,11 @@
       max-width: 600px;
       margin-left: auto;
       margin-right: auto;
+      text-shadow: 1px 1px 3px #111;
     }
 
     .try-again {
-      background-color: #ff4d4d;
+      background-color: #aa2a2a;
       color: #fff;
       border: none;
       border-radius: 8px;
@@ -47,31 +48,41 @@
       font-size: 1rem;
       cursor: pointer;
       transition: background 0.3s ease;
+      box-shadow: 2px 2px 8px #000;
     }
 
     .try-again:hover {
-      background-color: #e60000;
+      background-color: #cc0000;
     }
 
     .footer {
       margin-top: 4rem;
       font-size: 0.9rem;
-      color: #888;
+      color: #777;
+      text-shadow: 1px 1px 3px #000;
+    }
+
+    a {
+      color: #bbb;
     }
   </style>
 </head>
 <body>
 
-  <h1>Mount Zoom Has Gone Into Mordor</h1>
+  <h1>Mount Zoom Has Gone Into Mordor 🔥</h1>
   <p>It looks like the Pi is either restarting, hiking through dark lands, or has completely vanished into shadow. Please check back soon.</p>
 
-  <button class="try-again" onclick="tryReconnect()">Try to Reconnect</button>
+  <button class="try-again" onclick="tryReconnect()">🔄 Try to Reconnect</button>
 
   <div class="footer">
-    If you keep seeing this page, check back later or follow <a href="https://instagram.com/mountzoom" style="color: #ccc;">@mountzoom</a> for updates.
+    If you keep seeing this page, check back later or follow <a href="https://instagram.com/mountzoom">@mountzoom</a> for updates.
   </div>
 
   <script>
     function tryReconnect() {
       window.location.href = "https://mountzoom.hylton.co.nz";
     }
+  </script>
+
+</body>
+</html>

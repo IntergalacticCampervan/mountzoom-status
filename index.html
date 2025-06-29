@@ -44,7 +44,7 @@
 
     h2 {
       font-size: 1.2em;
-      color: #ffcc99;
+      color: #e4c35a;
       font-family: 'Uncial Antiqua', serif;
       margin-top: 0;
     }
@@ -92,8 +92,8 @@
       "Polishing axes...",
       "Summoning the Eagles...",
       "Fetching second breakfast...",
+      "Recharging Solar..."
       "Sneaking past orcs...",
-      "Whispering to the Ents...",
       "Scouting the Black Gate...",
       "Reloading the One Stream..."
     ];
@@ -115,8 +115,8 @@
         // If fetch does not throw, assume it's up
         window.location.href = checkStreamUrl;
       } catch (e) {
-        // Try again in 10 seconds
-        setTimeout(tryReconnect, 10000);
+        // Try again in 20 seconds
+        setTimeout(tryReconnect, 20000);
       }
     }
 

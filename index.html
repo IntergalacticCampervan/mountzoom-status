@@ -80,11 +80,10 @@
 </head>
 <body>
   <div class="overlay-content">
+          <h1>The Stream has Gone into Mordor</h1>
     <img src="eye-of-sauron.png" alt="The Eye of Sauron" class="eye">
-    <h1>The Stream has Gone into Mordor</h1>
-    <h2> We've passed into shadow (or run out of solar) Wait to be reconnected or try again<h2>
-    <h2 id="status-line">Lighting the beacons...</h2>
-    <button id="retry-button" onclick="window.location.href='https://mountzoom.hylton.co.nz'">Reconnect</button>
+    <h4> We've passed into shadow (or run out of solar) Wait to be reconnected or click the button below to try again<h4>
+    <button class="retry-button" id="retry-button" onclick="checkStream()">Lighting the beacons...</button>
   </div>
 
   <script>
@@ -100,7 +99,7 @@
     ];
 
     let index = 0;
-    const statusElement = document.getElementById('status-line');
+    const statusElement = document.getElementById('retry-button');
 
     setInterval(() => {
       index = (index + 1) % statusLines.length;

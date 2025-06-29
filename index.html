@@ -115,8 +115,8 @@
         // If fetch does not throw, assume it's up
         window.location.href = checkStreamUrl;
       } catch (e) {
-        // Try again in 20 seconds
-        setTimeout(tryReconnect, 20000);
+        // Try again in 10 seconds
+        setTimeout(tryReconnect, 10000);
       }
     }
 

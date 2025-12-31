@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>Mount Zoom Status</title>
   <link rel="icon" href="eye-of-sauron.png">
-  <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&display=swap" rel="stylesheet">
   <style>
     body {
@@ -54,10 +53,11 @@
     #last-seen {
       font-size: 0.95rem;
       margin-bottom: 20px;
+      display: none;
     }
 
     #last-seen img {
-      display: block;
+      display: none;
       max-width: 220px;
       height: auto;
       margin: 8px auto 0;
@@ -92,14 +92,15 @@
 </head>
 <body>
   <div class="overlay"></div>
+
   <div class="content">
     <img src="eye-of-sauron.png" alt="Eye of Sauron" class="eye">
     <h1>The Stream has Gone into Mordor</h1>
     <div class="subheading" id="subheading">Lighting the beacons...</div>
 
-    <div id="last-seen" hidden>
+    <div id="last-seen">
       <div id="last-seen-text"></div>
-      <img id="last-seen-image" alt="Last known view" hidden>
+      <img id="last-seen-image" alt="Last known view">
     </div>
 
     <button id="retry-button" onclick="tryReconnect()">Try Again</button>
@@ -111,7 +112,7 @@
 
   <script>
     const homepageURL = "https://mountzoom.hylton.co.nz";
-    const API_BASE = "https://offline.mountzoom.hylton.co.nz";
+    const API_BASE = "https://mountzoom.hylton.co.nz";
 
     const subheading = document.getElementById("subheading");
     const messages = [
@@ -129,16 +130,11 @@
     }, 3000);
 
     function tryReconnect() {
-      fetch(homepageURL, { method: 'HEAD', mode: 'no-cors' })
-        .then(() => {
-          window.location.href = homepageURL;
-        })
-        .catch(() => {
-          alert("Still lost in the Mines of Moria...");
-        });
+      fetch(homepageURL, { method: "HEAD", mode: "no-cors" })
+        .then(() => window.location.href = homepageURL)
+        .catch(() => alert("Still lost in the Mines of Moria..."));
     }
 
-    // Auto retry every 10 seconds
     setInterval(tryReconnect, 10000);
 
     const lastSeenContainer = document.getElementById("last-seen");
@@ -146,30 +142,25 @@
     const lastSeenImage = document.getElementById("last-seen-image");
 
     fetch(`${API_BASE}/api/last-seen`, { cache: "no-store" })
-      .then((response) => (response.ok ? response.json() : null))
-      .then((data) => {
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
         if (!data) return;
+        if (typeof data.locationLabel !== "string") return;
+        if (!Number.isFinite(data.ageMinutes)) return;
 
-        const location = typeof data.locationLabel === "string"
-          ? data.locationLabel
-          : null;
+        lastSeenText.textContent =
+          `${data.locationLabel} • ${data.ageMinutes} minutes ago`;
 
-        const minutes = Number.isFinite(data.ageMinutes)
-          ? data.ageMinutes
-          : null;
-
-        if (!location || minutes === null) return;
-
-        lastSeenText.textContent = `${location} • ${minutes} minutes ago`;
-        lastSeenContainer.hidden = false;
+        lastSeenContainer.style.display = "block";
 
         if (typeof data.imageUrl === "string" && data.imageUrl) {
-          lastSeenImage.src = `${API_BASE}${data.imageUrl}?t=${Date.now()}`;
-          lastSeenImage.hidden = false;
+          lastSeenImage.src =
+            `${API_BASE}${data.imageUrl}?t=${Date.now()}`;
+          lastSeenImage.style.display = "block";
         }
       })
       .catch(() => {
-        // Silent failure is intentional
+        // silent by design
       });
   </script>
 </body>

@@ -7,90 +7,126 @@
   <link rel="icon" href="eye-of-sauron.png">
   <link href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&display=swap" rel="stylesheet">
 
+  <!-- Leaflet -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+
   <style>
     body {
       margin: 0;
-      padding: 0;
       font-family: 'Ringbearer', 'Uncial Antiqua', serif;
       background: url('middle-earth-bg.jpg') center/cover no-repeat;
       color: #e4c35a;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+      min-height: 100vh;
       position: relative;
     }
 
     .overlay {
-      position: absolute;
+      position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.6);
-      z-index: 1;
+      background: rgba(0,0,0,0.65);
+      z-index: 0;
     }
 
-    .content {
+    .page {
       position: relative;
-      z-index: 2;
+      z-index: 1;
+      padding: 24px 16px 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
       text-align: center;
-      max-width: 320px;
-      padding: 0 14px;
+      margin-bottom: 24px;
     }
 
     .eye {
-      width: 110px;
+      width: 90px;
+      margin-bottom: 12px;
       animation: pulse 2s infinite;
-      margin-bottom: 16px;
     }
 
     h1 {
-      font-size: 2.2rem;
-      margin-bottom: 0.4rem;
+      font-size: 2.4rem;
+      margin: 0 0 6px;
     }
 
     .subheading {
-      font-size: 1.15rem;
+      font-size: 1.1rem;
       font-style: italic;
-      height: 1.5em;
-      margin-bottom: 18px;
+      opacity: 0.9;
     }
 
-    #last-seen {
-      display: none;
-      margin-bottom: 22px;
-      font-size: 0.95rem;
+    /* --- Main layout --- */
+
+    .status-layout {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 20px;
+      align-items: start;
+      margin-top: 26px;
     }
 
-    .last-seen-title {
-      font-style: italic;
-      opacity: 0.85;
-      margin-bottom: 6px;
+    @media (max-width: 900px) {
+      .status-layout {
+        grid-template-columns: 1fr;
+      }
     }
 
-    .last-seen-row {
-      margin-bottom: 4px;
+    /* --- Image --- */
+
+    .image-panel {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .image-panel img {
+      width: 100%;
+      max-height: 70vh;
+      object-fit: contain;
+      border-radius: 10px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.8);
+      background: rgba(0,0,0,0.3);
+    }
+
+    /* --- Info + map --- */
+
+    .info-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
     }
 
     .last-seen-meta {
-      font-size: 0.85rem;
-      opacity: 0.85;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      opacity: 0.9;
     }
 
-    #last-seen-image {
-      display: none;
-      max-width: 100%;
-      margin-top: 10px;
-      border-radius: 6px;
-      box-shadow: 0 0 12px rgba(0,0,0,0.6);
+    .last-seen-meta span {
+      display: block;
     }
 
-    @keyframes pulse {
-      0% { transform: scale(1); filter: drop-shadow(0 0 0 red); }
-      50% { transform: scale(1.05); filter: drop-shadow(0 0 8px orange); }
-      100% { transform: scale(1); filter: drop-shadow(0 0 0 red); }
+    #map {
+      height: 280px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 18px rgba(0,0,0,0.7);
     }
 
-    #retry-button {
-      padding: 10px 22px;
+    /* --- Button --- */
+
+    .actions {
+      margin-top: 18px;
+      text-align: center;
+    }
+
+    button {
+      padding: 10px 26px;
       font-size: 1rem;
       background: #000;
       color: #e4c35a;
@@ -100,12 +136,16 @@
     }
 
     footer {
-      position: absolute;
-      bottom: 10px;
-      width: 100%;
       text-align: center;
       font-size: 0.75rem;
-      color: #ccc;
+      opacity: 0.6;
+      margin-top: 28px;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); filter: drop-shadow(0 0 0 red); }
+      50% { transform: scale(1.05); filter: drop-shadow(0 0 8px orange); }
+      100% { transform: scale(1); filter: drop-shadow(0 0 0 red); }
     }
   </style>
 </head>
@@ -113,33 +153,46 @@
 <body>
   <div class="overlay"></div>
 
-  <div class="content">
-    <img src="eye-of-sauron.png" alt="Eye of Sauron" class="eye">
+  <div class="page">
+    <header>
+      <img src="eye-of-sauron.png" class="eye" alt="">
+      <h1>The Stream Has Gone Into Mordor</h1>
+      <div class="subheading" id="subheading">Lighting the beacons...</div>
+    </header>
 
-    <h1>The Stream has Gone into Mordor</h1>
-    <div class="subheading" id="subheading">Lighting the beacons...</div>
+    <div class="status-layout" id="status" style="display:none">
+      <!-- Image -->
+      <div class="image-panel">
+        <img id="last-image" alt="Last known view">
+      </div>
 
-    <div id="last-seen">
-      <div class="last-seen-title">Last known sighting</div>
-      <div class="last-seen-row" id="ls-location"></div>
-      <div class="last-seen-row last-seen-meta" id="ls-age"></div>
-      <div class="last-seen-row last-seen-meta" id="ls-time"></div>
-      <div class="last-seen-row last-seen-meta" id="ls-coords"></div>
-      <img id="last-seen-image" alt="Last known view">
+      <!-- Info + map -->
+      <div class="info-panel">
+        <div class="last-seen-meta">
+          <span id="ls-location"></span>
+          <span id="ls-age"></span>
+          <span id="ls-time"></span>
+          <span id="ls-coords"></span>
+        </div>
+
+        <div id="map"></div>
+      </div>
     </div>
 
-    <button id="retry-button" onclick="tryReconnect()">Try Again</button>
+    <div class="actions">
+      <button onclick="tryReconnect()">Try Again</button>
+    </div>
+
+    <footer>
+      2025 G&J Co • The Eye sees all, eventually
+    </footer>
   </div>
 
-  <footer>
-    2025 G&J Co • The Eye sees all, eventually
-  </footer>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
     const homepageURL = "https://mountzoom.hylton.co.nz";
-    const API_BASE = "https://mountzoom.hylton.co.nz";
 
-    const subheading = document.getElementById("subheading");
     const messages = [
       "Lighting the beacons...",
       "Polishing axes...",
@@ -150,30 +203,31 @@
 
     let i = 0;
     setInterval(() => {
-      i = (i + 1) % messages.length;
-      subheading.textContent = messages[i];
+      document.getElementById("subheading").textContent =
+        messages[++i % messages.length];
     }, 3000);
 
     function tryReconnect() {
       fetch(homepageURL, { method: "HEAD", mode: "no-cors" })
-        .then(() => window.location.href = homepageURL)
-        .catch(() => alert("Still lost in the Mines of Moria..."));
+        .then(() => location.href = homepageURL)
+        .catch(() => {});
     }
 
-    setInterval(tryReconnect, 10000);
-
-    /* ---- Fetch last seen (cross-origin to Worker) ---- */
-
-    fetch(`${API_BASE}/api/last-seen`, { cache: "no-store" })
+    fetch("/api/last-seen", { cache: "no-store" })
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (!data) return;
 
+        document.getElementById("status").style.display = "grid";
+
+        document.getElementById("last-image").src =
+          `${data.imageUrl}?t=${Date.now()}`;
+
         document.getElementById("ls-location").textContent =
-          data.locationLabel || "Unknown location";
+          `Last known sighting: ${data.locationLabel}`;
 
         document.getElementById("ls-age").textContent =
-          `${data.ageMinutes} minute${data.ageMinutes === 1 ? "" : "s"} ago`;
+          `${data.ageMinutes} minutes ago`;
 
         document.getElementById("ls-time").textContent =
           `Timestamp: ${new Date(data.timestamp).toUTCString()}`;
@@ -181,18 +235,23 @@
         if (Number.isFinite(data.lat) && Number.isFinite(data.lon)) {
           document.getElementById("ls-coords").textContent =
             `Coordinates: ${data.lat.toFixed(5)}, ${data.lon.toFixed(5)}`;
-        }
 
-        if (typeof data.imageUrl === "string") {
-          const img = document.getElementById("last-seen-image");
-          img.src = `${API_BASE}${data.imageUrl}?t=${Date.now()}`;
-          img.style.display = "block";
-        }
+          const map = L.map("map", {
+            zoomControl: false,
+            attributionControl: false,
+            dragging: false,
+            scrollWheelZoom: false
+          }).setView([data.lat, data.lon], 11);
 
-        document.getElementById("last-seen").style.display = "block";
-      })
-      .catch(() => {
-        // Silent by design
+          L.tileLayer(
+            "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+            { maxZoom: 19 }
+          ).addTo(map);
+
+          L.marker([data.lat, data.lon]).addTo(map);
+        } else {
+          document.getElementById("map").style.display = "none";
+        }
       });
   </script>
 </body>

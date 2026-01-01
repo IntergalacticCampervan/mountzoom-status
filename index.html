@@ -29,40 +29,42 @@
     .overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0,0,0,0.65);
       z-index: 0;
     }
 
     .content {
       position: relative;
       z-index: 1;
-      max-width: 820px;
+      max-width: 860px;
       margin: 0 auto;
-      padding: 24px 16px 80px;
+      padding: 28px 18px 96px;
       text-align: center;
     }
 
     .eye {
-      width: 100px;
-      margin-bottom: 14px;
+      width: 110px;
+      margin-bottom: 16px;
       animation: pulse 2s infinite;
     }
 
     h1 {
-      font-size: clamp(1.7rem, 5vw, 2.4rem);
-      margin-bottom: 10px;
+      font-size: clamp(1.9rem, 6vw, 2.6rem);
+      margin-bottom: 14px;
+      line-height: 1.15;
     }
 
     /* ---- Pill ---- */
 
     .pill {
       display: inline-block;
-      padding: 6px 14px;
-      border: 1px solid rgba(228,195,90,0.7);
+      padding: 8px 18px;
+      border: 1px solid rgba(228,195,90,0.75);
       border-radius: 999px;
-      font-size: 0.85rem;
-      margin-bottom: 20px;
-      background: rgba(0,0,0,0.4);
+      font-size: 0.95rem;
+      background: rgba(0,0,0,0.45);
+      margin-bottom: 26px;
+      letter-spacing: 0.02em;
     }
 
     /* ---- Media ---- */
@@ -70,17 +72,17 @@
     .media {
       display: flex;
       flex-direction: column;
-      gap: 18px;
-      margin-bottom: 18px;
+      gap: 22px;
+      margin-bottom: 22px;
     }
 
     .image-wrap {
       width: 100%;
-      aspect-ratio: 16 / 9;
+      aspect-ratio: 16 / 10;
       background: #000;
-      border-radius: 10px;
+      border-radius: 12px;
       overflow: hidden;
-      box-shadow: 0 0 18px rgba(0,0,0,0.7);
+      box-shadow: 0 0 22px rgba(0,0,0,0.75);
     }
 
     .image-wrap img {
@@ -91,39 +93,40 @@
 
     #map {
       width: 100%;
-      aspect-ratio: 16 / 9;
-      border-radius: 10px;
-      box-shadow: 0 0 18px rgba(0,0,0,0.7);
+      aspect-ratio: 16 / 10;
+      border-radius: 12px;
+      box-shadow: 0 0 22px rgba(0,0,0,0.75);
     }
 
     /* ---- Metadata ---- */
 
     .meta {
-      font-size: 0.95rem;
-      line-height: 1.5;
-      margin-bottom: 26px;
+      font-size: 1rem;
+      line-height: 1.6;
+      margin-bottom: 30px;
     }
 
     .meta-muted {
       font-size: 0.85rem;
-      opacity: 0.85;
+      opacity: 0.8;
     }
 
     /* ---- Reconnect ---- */
 
     .subheading {
       font-style: italic;
+      font-size: 1.05rem;
       opacity: 0.9;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
 
     #retry-button {
-      padding: 10px 22px;
-      font-size: 1rem;
+      padding: 12px 26px;
+      font-size: 1.05rem;
       background: #000;
       color: #e4c35a;
       border: 2px solid #e4c35a;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
     }
 
@@ -152,7 +155,7 @@
     <img src="eye-of-sauron.png" class="eye" alt="Eye of Sauron" />
 
     <h1>The Stream Has Gone Into Mordor</h1>
-    <div class="pill">Last known sighting</div>
+    <div class="pill" id="pill">Last known sighting</div>
 
     <div class="media">
       <div class="image-wrap">
@@ -194,8 +197,6 @@
         .catch(() => {});
     }
 
-    let map;
-
     fetch(`${API_ORIGIN}/api/last-seen`, { cache: "no-store" })
       .then(r => {
         const ct = r.headers.get("content-type") || "";
@@ -205,22 +206,27 @@
       .then(data => {
         const ts = new Date(data.timestamp);
 
+        // Pill content
+        document.getElementById("pill").textContent =
+          `Last known sighting · ${data.ageMinutes} min ago`;
+
+        // Image
+        if (data.imageUrl) {
+          document.getElementById("last-image").src =
+            `${API_ORIGIN}${data.imageUrl}?t=${Date.now()}`;
+        }
+
+        // Meta (timestamp + coords only)
         document.getElementById("meta").innerHTML = `
-          ${data.locationLabel}<br>
-          ${data.ageMinutes} minutes ago<br>
           <span class="meta-muted">${ts.toUTCString()}</span><br>
           <span class="meta-muted">
             ${data.lat.toFixed(5)}, ${data.lon.toFixed(5)}
           </span>
         `;
 
-        if (data.imageUrl) {
-          document.getElementById("last-image").src =
-            `${API_ORIGIN}${data.imageUrl}?t=${Date.now()}`;
-        }
-
+        // Map
         if (Number.isFinite(data.lat) && Number.isFinite(data.lon)) {
-          map = L.map("map", {
+          const map = L.map("map", {
             zoomControl: false,
             attributionControl: false
           }).setView([data.lat, data.lon], 10);

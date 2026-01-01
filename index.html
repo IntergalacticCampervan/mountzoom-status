@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Mount Zoom Status</title>
+
   <link rel="icon" href="eye-of-sauron.png">
   <link href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&display=swap" rel="stylesheet">
 
@@ -23,7 +24,7 @@
     .overlay {
       position: absolute;
       inset: 0;
-      background-color: rgba(0, 0, 0, 0.6);
+      background: rgba(0,0,0,0.6);
       z-index: 1;
     }
 
@@ -32,7 +33,7 @@
       z-index: 2;
       text-align: center;
       max-width: 320px;
-      padding: 0 12px;
+      padding: 0 14px;
     }
 
     .eye {
@@ -53,7 +54,7 @@
       margin-bottom: 18px;
     }
 
-    /* ---- Last Seen Block ---- */
+    /* ---- Last Seen ---- */
 
     #last-seen {
       display: none;
@@ -93,11 +94,11 @@
     #retry-button {
       padding: 10px 22px;
       font-size: 1rem;
-      background-color: #000;
+      background: #000;
       color: #e4c35a;
       border: 2px solid #e4c35a;
-      cursor: pointer;
       border-radius: 8px;
+      cursor: pointer;
     }
 
     footer {
@@ -122,12 +123,10 @@
 
     <div id="last-seen">
       <div class="last-seen-title">Last known sighting</div>
-
-      <div class="last-seen-row" id="last-seen-location"></div>
-      <div class="last-seen-row last-seen-meta" id="last-seen-age"></div>
-      <div class="last-seen-row last-seen-meta" id="last-seen-time"></div>
-      <div class="last-seen-row last-seen-meta" id="last-seen-coords"></div>
-
+      <div class="last-seen-row" id="ls-location"></div>
+      <div class="last-seen-row last-seen-meta" id="ls-age"></div>
+      <div class="last-seen-row last-seen-meta" id="ls-time"></div>
+      <div class="last-seen-row last-seen-meta" id="ls-coords"></div>
       <img id="last-seen-image" alt="Last known view">
     </div>
 
@@ -140,7 +139,6 @@
 
   <script>
     const homepageURL = "https://mountzoom.hylton.co.nz";
-    const API_BASE = "https://mountzoom.hylton.co.nz";
 
     const subheading = document.getElementById("subheading");
     const messages = [
@@ -151,10 +149,10 @@
       "Checking Helm’s Deep..."
     ];
 
-    let index = 0;
+    let i = 0;
     setInterval(() => {
-      index = (index + 1) % messages.length;
-      subheading.textContent = messages[index];
+      i = (i + 1) % messages.length;
+      subheading.textContent = messages[i];
     }, 3000);
 
     function tryReconnect() {
@@ -165,36 +163,34 @@
 
     setInterval(tryReconnect, 10000);
 
-    // ---- Last Seen Fetch ----
+    /* ---- Fetch last seen (same-origin, no CORS) ---- */
 
-    fetch(`${API_BASE}/api/last-seen`, { cache: "no-store" })
-      .then(res => res.ok ? res.json() : null)
+    fetch("/api/last-seen", { cache: "no-store" })
+      .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (!data) return;
 
-        const container = document.getElementById("last-seen");
-
-        document.getElementById("last-seen-location").textContent =
+        document.getElementById("ls-location").textContent =
           data.locationLabel || "Unknown location";
 
-        document.getElementById("last-seen-age").textContent =
+        document.getElementById("ls-age").textContent =
           `${data.ageMinutes} minute${data.ageMinutes === 1 ? "" : "s"} ago`;
 
-        document.getElementById("last-seen-time").textContent =
+        document.getElementById("ls-time").textContent =
           `Timestamp: ${new Date(data.timestamp).toUTCString()}`;
 
         if (Number.isFinite(data.lat) && Number.isFinite(data.lon)) {
-          document.getElementById("last-seen-coords").textContent =
+          document.getElementById("ls-coords").textContent =
             `Coordinates: ${data.lat.toFixed(5)}, ${data.lon.toFixed(5)}`;
         }
 
         if (typeof data.imageUrl === "string") {
           const img = document.getElementById("last-seen-image");
-          img.src = `${API_BASE}${data.imageUrl}?t=${Date.now()}`;
+          img.src = `${data.imageUrl}?t=${Date.now()}`;
           img.style.display = "block";
         }
 
-        container.style.display = "block";
+        document.getElementById("last-seen").style.display = "block";
       })
       .catch(() => {});
   </script>

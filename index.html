@@ -5,6 +5,7 @@
   <title>Mount Zoom Status</title>
   <link rel="icon" href="eye-of-sauron.png">
   <link href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&display=swap" rel="stylesheet">
+
   <style>
     body {
       margin: 0;
@@ -21,7 +22,7 @@
 
     .overlay {
       position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
+      inset: 0;
       background-color: rgba(0, 0, 0, 0.6);
       z-index: 1;
     }
@@ -30,38 +31,57 @@
       position: relative;
       z-index: 2;
       text-align: center;
+      max-width: 320px;
+      padding: 0 12px;
     }
 
     .eye {
-      width: 120px;
+      width: 110px;
       animation: pulse 2s infinite;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
 
     h1 {
-      font-size: 2.5rem;
-      margin-bottom: 0.5rem;
+      font-size: 2.2rem;
+      margin-bottom: 0.4rem;
     }
 
     .subheading {
-      font-size: 1.25rem;
+      font-size: 1.15rem;
       font-style: italic;
       height: 1.5em;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
+
+    /* ---- Last Seen Block ---- */
 
     #last-seen {
-      font-size: 0.95rem;
-      margin-bottom: 20px;
       display: none;
+      margin-bottom: 22px;
+      font-size: 0.95rem;
     }
 
-    #last-seen img {
+    .last-seen-title {
+      font-style: italic;
+      opacity: 0.85;
+      margin-bottom: 6px;
+    }
+
+    .last-seen-row {
+      margin-bottom: 4px;
+    }
+
+    .last-seen-meta {
+      font-size: 0.85rem;
+      opacity: 0.85;
+    }
+
+    #last-seen-image {
       display: none;
-      max-width: 220px;
-      height: auto;
-      margin: 8px auto 0;
+      max-width: 100%;
+      margin-top: 10px;
       border-radius: 6px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.6);
     }
 
     @keyframes pulse {
@@ -71,7 +91,7 @@
     }
 
     #retry-button {
-      padding: 10px 20px;
+      padding: 10px 22px;
       font-size: 1rem;
       background-color: #000;
       color: #e4c35a;
@@ -85,21 +105,29 @@
       bottom: 10px;
       width: 100%;
       text-align: center;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       color: #ccc;
     }
   </style>
 </head>
+
 <body>
   <div class="overlay"></div>
 
   <div class="content">
     <img src="eye-of-sauron.png" alt="Eye of Sauron" class="eye">
+
     <h1>The Stream has Gone into Mordor</h1>
     <div class="subheading" id="subheading">Lighting the beacons...</div>
 
     <div id="last-seen">
-      <div id="last-seen-text"></div>
+      <div class="last-seen-title">Last known sighting</div>
+
+      <div class="last-seen-row" id="last-seen-location"></div>
+      <div class="last-seen-row last-seen-meta" id="last-seen-age"></div>
+      <div class="last-seen-row last-seen-meta" id="last-seen-time"></div>
+      <div class="last-seen-row last-seen-meta" id="last-seen-coords"></div>
+
       <img id="last-seen-image" alt="Last known view">
     </div>
 
@@ -137,31 +165,38 @@
 
     setInterval(tryReconnect, 10000);
 
-    const lastSeenContainer = document.getElementById("last-seen");
-    const lastSeenText = document.getElementById("last-seen-text");
-    const lastSeenImage = document.getElementById("last-seen-image");
+    // ---- Last Seen Fetch ----
 
     fetch(`${API_BASE}/api/last-seen`, { cache: "no-store" })
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         if (!data) return;
-        if (typeof data.locationLabel !== "string") return;
-        if (!Number.isFinite(data.ageMinutes)) return;
 
-        lastSeenText.textContent =
-          `${data.locationLabel} • ${data.ageMinutes} minutes ago`;
+        const container = document.getElementById("last-seen");
 
-        lastSeenContainer.style.display = "block";
+        document.getElementById("last-seen-location").textContent =
+          data.locationLabel || "Unknown location";
 
-        if (typeof data.imageUrl === "string" && data.imageUrl) {
-          lastSeenImage.src =
-            `${API_BASE}${data.imageUrl}?t=${Date.now()}`;
-          lastSeenImage.style.display = "block";
+        document.getElementById("last-seen-age").textContent =
+          `${data.ageMinutes} minute${data.ageMinutes === 1 ? "" : "s"} ago`;
+
+        document.getElementById("last-seen-time").textContent =
+          `Timestamp: ${new Date(data.timestamp).toUTCString()}`;
+
+        if (Number.isFinite(data.lat) && Number.isFinite(data.lon)) {
+          document.getElementById("last-seen-coords").textContent =
+            `Coordinates: ${data.lat.toFixed(5)}, ${data.lon.toFixed(5)}`;
         }
+
+        if (typeof data.imageUrl === "string") {
+          const img = document.getElementById("last-seen-image");
+          img.src = `${API_BASE}${data.imageUrl}?t=${Date.now()}`;
+          img.style.display = "block";
+        }
+
+        container.style.display = "block";
       })
-      .catch(() => {
-        // silent by design
-      });
+      .catch(() => {});
   </script>
 </body>
 </html>
